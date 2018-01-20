@@ -1,0 +1,68 @@
+body {
+	margin: 0;
+	background: #111;
+}
+
+h1 {
+	font-size: 3em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-align: center;
+}
+
+.body-wrapper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.leftbar {
+	min-width: 250px;
+	background: linear-gradient(180deg, rgba(71,81,94,1) 0%, rgba(62,70,84,1) 100%) !important;
+}
+
+.leftbar .bartitle h3 {
+	line-height: 48px !important;
+}
+
+.leftbar .leftbarmenu {
+	padding: 0 !important;
+}
+
+.leftbar .sectiontitle .baritem, .leftbar .sectioncontent {
+	padding: 25px 40px;
+}
+
+.leftbar .sectiontitle {
+	background: rgb(52, 61, 63) !important;
+	padding: 0 !important;
+}
+
+.leftbar .baritem {
+	text-align: left !important;
+	padding: 0;
+	margin: 0 !important;
+}
+
+.leftbar .baritem:not(:last-child) {
+	margin-bottom: 15px !important;
+}
+
+.leftbar .sectioncontent label {
+	color: white !important;
+}
+
+.testlabel {
+	display: block;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100px;
+	height: 100px;
+	background: #f00;
+}
