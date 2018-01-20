@@ -28,6 +28,7 @@ $(document).ready(function(){
 });
 
 function updateMap() {
+	showPopups([]);
 	$.ajax({
 		type: "POST",
 		url: "http://localhost:5000/data", // NOTE: url of the request
@@ -35,13 +36,15 @@ function updateMap() {
 		data: ops,
 		success: function(data) {
 			console.log(data); // NOTE: do something with the data
+			// showPopups(data); // uncomment this line to display data
 		}
 	});
 }
 
 // show popup
 
-function showPopups(ops, data) {
+function showPopups(data) {
+	popups.forEach(item => item.remove());
 	popups = [];
 
 	Object.keys(data).forEach(function(key) {
@@ -79,7 +82,7 @@ map.addControl(new mapboxgl.NavigationControl());
 
 // only call
 
-showPopups(ops, [
+showPopups([
 	{
 		"text": "Hello world!",
 		"location": [-118.276690, 34.031057],
