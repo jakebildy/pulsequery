@@ -16,6 +16,9 @@ var ops = {
 };
 var currentData = null;
 
+const latRadius = 0.06;
+const lonRadius = 0.1;
+
 $(document).ready(function(){
 	/* Create a copy of sidebar menu for desktop */
 	$(".toc-copy").html($(".toc").html());
@@ -63,13 +66,22 @@ function processSentimentsAndShowData(data) {
 	var finished = 0;
 
 	data.forEach((item) => {
+		if(item.provider === 'twitter') {
+			var latitude = map.getBounds().getCenter().lat;
+			var longitude = map.getBounds().getCenter().lng;
+			var calculatedLat = latitude + Math.random() * latRadius - latRadius / 2;
+			var calculatedLon = longitude + Math.random() * lonRadius - lonRadius / 2;
+			item.location = [calculatedLon, calculatedLat];
+		}
+
 		var text = item.text;
+		var processedText = text.replace(/[^\w\s]/gi, '');
 
 		var options = {
 			"encodingType": "UTF8",
 			"document": {
 				"type": "PLAIN_TEXT",
-				"content": text
+				"content": processedText
 			}
 		};
 
@@ -102,6 +114,7 @@ function processSentimentsAndShowData(data) {
 			},
 			error: function (responseData, textStatus, errorThrown) {
 		    	console.log("failed");
+		    	addToBuffer(null);
 			}
 		});
 	});
@@ -109,7 +122,9 @@ function processSentimentsAndShowData(data) {
 	function addToBuffer(dataToAdd) {
 		finished++;
 
-		buffer.push(dataToAdd);
+		if(dataToAdd != null) {
+			buffer.push(dataToAdd);
+		}
 
 		// complete
 		if(finished == data.length) {
