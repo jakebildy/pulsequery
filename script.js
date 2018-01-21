@@ -104,31 +104,6 @@ function processSentimentsAndShowData(data) {
 		    	console.log("failed");
 			}
 		});
-
-		// console.log(options);
-
-		// $.post( 'https://language.googleapis.com/v1/documents:analyzeSentiment?key=AIzaSyD2mHSjK-n0dojIqhnHRGQ6_XxAtJxtLTg', options)
-		// 	.done(function ( sentimentData ) {
-		// 		let magnitude = sentimentData.documentSentiment.magnitude;
-		// 		let score = sentimentData.documentSentiment.score;
-
-		// 		var sentiment = '';
-		// 		if(score > 0.4) {
-		// 			sentiment = 'positive';
-		// 		}
-		// 		else if(score < -0.4) {
-		// 			sentiment = 'negative';
-		// 		}
-		// 		else if(magnitude > 2.0) {
-		// 			sentiment = 'mixed';
-		// 		}
-		// 		else {
-		// 			sentiment = 'neutral';
-		// 		}
-
-		// 		item.sentiment = sentiment;
-		// 		addToBuffer(item);
-		// 	});
 	});
 
 	function addToBuffer(dataToAdd) {
@@ -154,12 +129,29 @@ function showPopups(data) {
 		var item = data[key];
 
 		if(ops.sentiment[item.sentiment]) {
-			var popup = new mapboxgl.Popup({closeOnClick: false})
-			    .setLngLat(item.location)
-			    .setHTML('<div>' + item.text + '</div>')
-			    .addTo(map);
+			var ele = document.createElement("div");
+		
+			// Debug only
+			// console.log(sensor);
+			
+			// Setup popup menu
+			$(ele).addClass("marker");
+			$(ele).html("<div class='ui vertical center aligned segment'><i class='male icon'></i></div>");
+			$(ele).attr("data-html", 
+				"<div class='ui vertical segment'>" + item.text + "</div>"
+				+ "<div class='ui vertical right aligned segment'><i class='thumbs outline down icon'></i><i class='thumbs outline up icon'></i></div>"
+			);
+			$(ele).attr("data-variation", "tiny");
+			$(ele).attr("data-position", "top center");
+			$(ele).popup({
+				"on": "click"
+			});
 
-			popups.push(popup);
+			new mapboxgl.Marker(ele) //, {offset: [0, 0]})
+				.setLngLat(item.location)
+				.addTo(map);
+
+			popups.push(ele);
 		}
 	});
 }
