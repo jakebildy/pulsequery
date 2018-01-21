@@ -1,0 +1,158 @@
+"use strict";
+var $ = require("jquery");
+var mapbox_gl_1 = require("mapbox-gl");
+var popups = [];
+var ops = {
+    'filters': {
+        'twitter': true,
+        'yelp': false,
+        'facebook': false
+    }
+};
+var Sentiment;
+(function (Sentiment) {
+    Sentiment[Sentiment["Positive"] = 0] = "Positive";
+    Sentiment[Sentiment["Negative"] = 1] = "Negative";
+    Sentiment[Sentiment["Neutral"] = 2] = "Neutral";
+    Sentiment[Sentiment["Mixed"] = 3] = "Mixed";
+})(Sentiment || (Sentiment = {}));
+;
+var currentData;
+var latRadius = 0.06;
+var lonRadius = 0.1;
+$(document).ready(function () {
+    /* Create a copy of sidebar menu for desktop */
+    $(".toc-copy").html($(".toc").html());
+    $(".sidebar-toggle.button").click(function () {
+        $(".toc.sidebar").sidebar("toggle");
+    });
+    $(".refresh.button").click(function () {
+        console.log("update");
+        updateMap();
+    });
+    $('.ui.checkbox').checkbox('setting', 'onChange', function () {
+        var name = $(this).parent()[0].id;
+        var category = (name in ['twitter', 'yelp', 'facebook']) ? 'filters' : 'sentiment';
+        ops[category][name] = !ops[category][name];
+        if (category === 'sentiment') {
+            showPopups(currentData);
+        }
+    });
+});
+function updateMap() {
+    showPopups([]);
+    var options = {
+        "filters": ops.filters,
+        "latitude": map.getBounds().getCenter().lat,
+        "longitude": map.getBounds().getCenter().lng,
+        "radius": 20000
+    };
+    console.log(options);
+    $.post("https://pulsequery-sbhacks.firebaseapp.com/data", options)
+        .done(function (data) {
+        console.log(data);
+        processSentimentsAndShowData(data);
+    });
+}
+function processSentimentsAndShowData(data) {
+    var buffer = [];
+    var finished = 0;
+    data.forEach(function (item) {
+        if (item.provider === 'twitter') {
+            var latitude = map.getBounds().getCenter().lat;
+            var longitude = map.getBounds().getCenter().lng;
+            var calculatedLat = latitude + Math.random() * latRadius - latRadius / 2;
+            var calculatedLon = longitude + Math.random() * lonRadius - lonRadius / 2;
+            item.location = [calculatedLon, calculatedLat];
+        }
+        var text = item.text;
+        var processedText = text.replace(/[^\w\s]/gi, '');
+        var options = {
+            "encodingType": "UTF8",
+            "document": {
+                "type": "PLAIN_TEXT",
+                "content": processedText
+            }
+        };
+        $.ajax({
+            type: 'POST',
+            url: 'https://language.googleapis.com/v1/documents:analyzeSentiment?key=AIzaSyD2mHSjK-n0dojIqhnHRGQ6_XxAtJxtLTg',
+            // crossDomain: true,
+            data: JSON.stringify(options),
+            contentType: 'application/json',
+            success: function (sentimentData, textStatus, jqXHR) {
+                var magnitude = sentimentData.documentSentiment.magnitude;
+                var score = sentimentData.documentSentiment.score;
+                var sentiment = '';
+                if (score > 0.4) {
+                    sentiment = 'positive';
+                }
+                else if (score < -0.4) {
+                    sentiment = 'negative';
+                }
+                else if (magnitude > 2.0) {
+                    sentiment = 'mixed';
+                }
+                else {
+                    sentiment = 'neutral';
+                }
+                item.sentiment = sentiment;
+                addToBuffer(item);
+            },
+            error: function (responseData, textStatus, errorThrown) {
+                console.log("failed");
+                addToBuffer(null);
+            }
+        });
+    });
+    function addToBuffer(dataToAdd) {
+        finished++;
+        if (dataToAdd != null) {
+            buffer.push(dataToAdd);
+        }
+        // complete
+        if (finished == data.length) {
+            showPopups(buffer);
+        }
+    }
+}
+// show popup
+function showPopups(data) {
+    currentData = data;
+    popups.forEach(function (item) { return item.remove(); });
+    popups = [];
+    Object.keys(data).forEach(function (key) {
+        var item = data[key];
+        if (Sentiment[item.sentiment]) {
+            var ele = document.createElement("div");
+            // Debug only
+            // console.log(sensor);
+            // Setup popup menu
+            $(ele).addClass("marker");
+            $(ele).html("<div class='ui vertical center aligned segment'><i class='male icon'></i></div>");
+            $(ele).attr("data-html", "<div class='ui vertical segment'>" + item.text + "</div>"
+                + "<div class='ui vertical right aligned segment'><i class='thumbs outline down icon'></i><i class='thumbs outline up icon'></i></div>");
+            $(ele).attr("data-variation", "tiny");
+            $(ele).attr("data-position", "top center");
+            $(ele).popup({
+                "on": "click"
+            });
+            new mapbox_gl_1["default"].Marker(ele) //, {offset: [0, 0]})
+                .setLngLat(item.location)
+                .addTo(map);
+            popups.push(ele);
+        }
+    });
+}
+// Map
+mapbox_gl_1["default"].accessToken = 'pk.eyJ1IjoicHZ4eWllIiwiYSI6ImNqNDUwbndteTF1NWozMnJ1bjA2a2xrOWoifQ.Dkr7hVK4a9hpq6ReN66ZsA';
+var map = new mapbox_gl_1["default"].Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v9',
+    center: [-118.276690, 34.031057],
+    zoom: 13 // starting zoom
+});
+map.addControl(new mapbox_gl_1["default"].NavigationControl());
+// only call
+updateMap();
+module.exports = 0;

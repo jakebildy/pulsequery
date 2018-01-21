@@ -1,5 +1,9 @@
-// inits
+import * as $ from 'jquery';
+import mapboxgl from 'mapbox-gl';
+import checkbox from 'semantic-ui';
 
+// inits
+export = 0;
 var popups = [];
 var ops = {
 	'filters': {
@@ -172,16 +176,6 @@ function showPopups(data) {
 		}
 	});
 }
-
-// extensions for UI
-
-jQuery.fn.extend({
-	showNoData: function() {
-		$(this).html(
-			"<p style='color: gray; text-align: center; line-height: " + ($(this).width() * 0.5) + "px;'>No Data</p>"
-		);
-	}
-});
 
 // Map
 
