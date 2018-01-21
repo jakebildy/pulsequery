@@ -6,8 +6,15 @@ var ops = {
 		'twitter': true,
 		'yelp': false,
 		'facebook': false
+	},
+	'sentiment': {
+		'positive': true,
+		'negative': true,
+		'neutral': true,
+		'mixed': true
 	}
 };
+var currentData = null;
 
 $(document).ready(function(){
 	/* Create a copy of sidebar menu for desktop */
@@ -17,9 +24,18 @@ $(document).ready(function(){
 		$(".toc.sidebar").sidebar("toggle");
 	});
 
-	$('.ui.checkbox').checkbox('setting', 'onChange', function() {
-		ops.filters[$(this).parent()[0].id] = !ops.filters[$(this).parent()[0].id];
+	$(".refresh.button").click(function() {
+		console.log("update");
 		updateMap();
+	});
+
+	$('.ui.checkbox').checkbox('setting', 'onChange', function() {
+		var name = $(this).parent()[0].id;
+		var category = (name in ['twitter', 'yelp', 'facebook']) ? 'filters' : 'sentiment';
+		ops[category][name] = !ops[category][name];
+		if(category === 'sentiment') {
+			showPopups(currentData);
+		}
 	});
 });
 
@@ -33,35 +49,118 @@ function updateMap() {
 		"radius": 20000
 	};
 
-	$.ajax({
-		type: "POST",
-		url: "https://pulsequery-sbhacks.firebaseapp.com/data",
-		dataType: 'json',
-		contentType: "application/json",
-		processData: false,
-		data: JSON.stringify(options),
-		success: function(data) {
+	console.log(options);
+
+	$.post( "https://pulsequery-sbhacks.firebaseapp.com/data", options)
+		.done(function( data ) {
 			console.log(data);
-			showPopups(data);
-		}
+			processSentimentsAndShowData(data);
+		});
+}
+
+function processSentimentsAndShowData(data) {
+	var buffer = [];
+	var finished = 0;
+
+	data.forEach((item) => {
+		var text = item.text;
+
+		var options = {
+			"encodingType": "UTF8",
+			"document": {
+				"type": "PLAIN_TEXT",
+				"content": text
+			}
+		};
+
+		$.ajax({
+			type: 'POST',
+			url: 'https://language.googleapis.com/v1/documents:analyzeSentiment?key=AIzaSyD2mHSjK-n0dojIqhnHRGQ6_XxAtJxtLTg',
+			// crossDomain: true,
+			data: JSON.stringify(options),
+			contentType: 'application/json',
+			success: function(sentimentData, textStatus, jqXHR) {
+		    	let magnitude = sentimentData.documentSentiment.magnitude;
+				let score = sentimentData.documentSentiment.score;
+
+				var sentiment = '';
+				if(score > 0.4) {
+					sentiment = 'positive';
+				}
+				else if(score < -0.4) {
+					sentiment = 'negative';
+				}
+				else if(magnitude > 2.0) {
+					sentiment = 'mixed';
+				}
+				else {
+					sentiment = 'neutral';
+				}
+
+				item.sentiment = sentiment;
+				addToBuffer(item);
+			},
+			error: function (responseData, textStatus, errorThrown) {
+		    	console.log("failed");
+			}
+		});
+
+		// console.log(options);
+
+		// $.post( 'https://language.googleapis.com/v1/documents:analyzeSentiment?key=AIzaSyD2mHSjK-n0dojIqhnHRGQ6_XxAtJxtLTg', options)
+		// 	.done(function ( sentimentData ) {
+		// 		let magnitude = sentimentData.documentSentiment.magnitude;
+		// 		let score = sentimentData.documentSentiment.score;
+
+		// 		var sentiment = '';
+		// 		if(score > 0.4) {
+		// 			sentiment = 'positive';
+		// 		}
+		// 		else if(score < -0.4) {
+		// 			sentiment = 'negative';
+		// 		}
+		// 		else if(magnitude > 2.0) {
+		// 			sentiment = 'mixed';
+		// 		}
+		// 		else {
+		// 			sentiment = 'neutral';
+		// 		}
+
+		// 		item.sentiment = sentiment;
+		// 		addToBuffer(item);
+		// 	});
 	});
+
+	function addToBuffer(dataToAdd) {
+		finished++;
+
+		buffer.push(dataToAdd);
+
+		// complete
+		if(finished == data.length) {
+			showPopups(buffer);
+		}
+	}
 }
 
 // show popup
 
 function showPopups(data) {
+	currentData = data;
 	popups.forEach(item => item.remove());
 	popups = [];
 
 	Object.keys(data).forEach(function(key) {
 		var item = data[key];
 
-		var popup = new mapboxgl.Popup({closeOnClick: false})
-		    .setLngLat([-118.276690, 34.031057])
-		    .setHTML('<div>' + item.text + '</div>')
-		    .addTo(map);
+		if(ops.sentiment[item.sentiment]) {
+			var popup = new mapboxgl.Popup({closeOnClick: false})
+			    .setLngLat(item.location)
+			    .setHTML('<div>' + item.text + '</div>')
+			    .addTo(map);
 
-		popups.push(popup);
+			popups.push(popup);
+		}
 	});
 }
 
