@@ -17,10 +17,6 @@ $(document).ready(function(){
 		$(".toc.sidebar").sidebar("toggle");
 	});
 
-	$('.apply-changes').click(function() {
-		updateMap();
-	});
-
 	$('.ui.checkbox').checkbox('setting', 'onChange', function() {
 		ops.filters[$(this).parent()[0].id] = !ops.filters[$(this).parent()[0].id];
 		updateMap();
@@ -29,14 +25,24 @@ $(document).ready(function(){
 
 function updateMap() {
 	showPopups([]);
+
+	let options = {
+		"filters": ops.filters,
+		"latitude": map.getBounds().getCenter().lat,
+		"longitude": map.getBounds().getCenter().lng,
+		"radius": 20000
+	};
+
 	$.ajax({
 		type: "POST",
-		url: "http://localhost:5000/data", // NOTE: url of the request
+		url: "https://pulsequery-sbhacks.firebaseapp.com/data",
 		dataType: 'json',
-		data: ops,
+		contentType: "application/json",
+		processData: false,
+		data: JSON.stringify(options),
 		success: function(data) {
-			console.log(data); // NOTE: do something with the data
-			// showPopups(data); // uncomment this line to display data
+			console.log(data);
+			showPopups(data);
 		}
 	});
 }
@@ -82,11 +88,4 @@ map.addControl(new mapboxgl.NavigationControl());
 
 // only call
 
-showPopups([
-	{
-		"text": "Hello world!",
-		"location": [-118.276690, 34.031057],
-		"time": 12345,
-		"provider": "twitter"
-	}
-]);
+updateMap();
