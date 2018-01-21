@@ -35,6 +35,14 @@ h3, h4 {
 	text-align: center;
 }
 
+.logo {
+	margin: 0 auto;
+	height: 40px;
+}
+.options.segment {
+	padding-bottom: 28px !important;
+}
+
 .full.height .toc-copy {
 	position: fixed;
 	z-index: 1;
@@ -97,4 +105,16 @@ h3, h4 {
 	width: 18px;
 	height: 18px;
 	display: block;
+}
+
+.bar-title {
+	padding: 14px 0 28px 0 !important;
+}
+
+.ui.popup, .ui.popup:before {
+	background-color: rgb(163, 51, 200) !important;
+	color: white !important;
+}
+.ui.popup .segment.with-divider {
+	border-bottom-color: white !important;
 }

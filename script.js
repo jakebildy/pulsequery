@@ -28,22 +28,22 @@ $(document).ready(function(){
 	});
 
 	$(".refresh.button").click(function() {
-		console.log("update");
 		updateMap();
 	});
 
 	$('.ui.checkbox').checkbox('setting', 'onChange', function() {
 		var name = $(this).parent()[0].id;
-		var category = (name in ['twitter', 'yelp', 'facebook']) ? 'filters' : 'sentiment';
+		var category = (['twitter', 'yelp', 'facebook'].indexOf(name) != -1) ? 'filters' : 'sentiment';
 		ops[category][name] = !ops[category][name];
-		if(category === 'sentiment') {
-			showPopups(currentData);
-		}
+		showPopups(currentData);
 	});
 });
 
 function updateMap() {
 	showPopups([]);
+	$('.ui.dimmer').dimmer('show');
+	$('.refresh.button').addClass('disabled');
+	$('.refresh.button').html('Updating Display...');
 
 	let options = {
 		"filters": ops.filters,
@@ -129,6 +129,9 @@ function processSentimentsAndShowData(data) {
 		// complete
 		if(finished == data.length) {
 			showPopups(buffer);
+
+			$('.ui.dimmer').dimmer('hide');
+			$('.refresh.button').html('Map View Updated');
 		}
 	}
 }
@@ -142,8 +145,9 @@ function showPopups(data) {
 
 	Object.keys(data).forEach(function(key) {
 		var item = data[key];
+		// console.log(item.provider + " " + ops.filters[item.provider]);
 
-		if(ops.sentiment[item.sentiment]) {
+		if(ops.sentiment[item.sentiment] && ops.filters[item.provider]) {
 			var ele = document.createElement("div");
 		
 			// Debug only
@@ -153,7 +157,7 @@ function showPopups(data) {
 			$(ele).addClass("marker");
 			$(ele).html("<div class='ui vertical center aligned segment'><i class='male icon'></i></div>");
 			$(ele).attr("data-html", 
-				"<div class='ui vertical segment'>" + item.text + "</div>"
+				"<div class='ui vertical segment with-divider'>" + item.text + "</div>"
 				+ "<div class='ui vertical right aligned segment'><i class='thumbs outline down icon'></i><i class='thumbs outline up icon'></i></div>"
 			);
 			$(ele).attr("data-variation", "tiny");
@@ -191,6 +195,12 @@ var map = new mapboxgl.Map({
 	zoom: 13 // starting zoom
 });
 map.addControl(new mapboxgl.NavigationControl());
+map.on('load', function() {
+	map.on('movestart', function(e) {
+		$('.refresh.button').removeClass('disabled');
+		$('.refresh.button').html('Update Display in Current Map View');
+	});
+});
 
 // only call
 

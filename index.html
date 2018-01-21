@@ -25,15 +25,12 @@
 
 	<!-- Sidebar Menu for Mobile Sites -->
 	<div class="ui left vertical push sidebar menu toc flex-container flex-column">
-		<div class="item flex-item flex-container dimmable">
-			<div class="ui inverted dimmer">
-				<div class="ui text loader">Loading</div>
-			</div>
+		<div class="item flex-item flex-container">
 			<div class="overflow flex-item">
-				<div class="ui vertical segment">
-					<h3>pulseQuery</h3>
+				<div class="ui vertical center aligned segment bar-title">
+					<img src="img/logo.png" class="logo" />
 				</div>
-				<div class="ui vertical segment">
+				<div class="ui vertical segment options">
 					<h4 class="filter-title">Provider Options</h4>
 					<div class="filters grouped fields">
 						<div class="field">
@@ -48,15 +45,9 @@
 								<label>Yelp</label>
 							</div>
 						</div>
-						<div class="field">
-							<div class="ui checkbox" id="facebook">
-								<input type="checkbox">
-								<label>Facebook</label>
-							</div>
-						</div>
 					</div>
 				</div>
-				<div class="ui vertical segment">
+				<div class="ui vertical segment options">
 					<h4 class="filter-title">Sentiment Options</h4>
 					<div class="filters grouped fields">
 						<div class="field">
@@ -87,7 +78,7 @@
 				</div>
 				<div class="ui vertical center aligned segment">
 					<div class="ui purple button refresh">
-						Update Display
+						Update Display in Current Map View
 					</div>
 				</div>
 			</div>
@@ -97,7 +88,10 @@
 	<!-- Main Content -->
 	<div class="pusher full height flex-container">
 		<div class="ui visible left vertical sidebar menu toc-copy flex-ignore flex-container flex-column"></div>
-		<div class="map-container flex-item flex-container">
+		<div class="map-container flex-item flex-container dimmable">
+			<div class="ui inverted dimmer">
+				<div class="ui text loader">Loading</div>
+			</div>
 			<div class="map flex-item" id="map"></div>
 		</div>
 	</div>
