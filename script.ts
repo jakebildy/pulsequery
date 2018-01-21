@@ -6,15 +6,17 @@ var ops = {
 		'twitter': true,
 		'yelp': false,
 		'facebook': false
-	},
-	'sentiment': {
-		'positive': true,
-		'negative': true,
-		'neutral': true,
-		'mixed': true
-	}
+	}};
+
+
+enum Sentiment {
+	Positive,
+	Negative,
+	Neutral,
+	Mixed
 };
-var currentData = null;
+
+var currentData : any;
 
 const latRadius = 0.06;
 const lonRadius = 0.1;
@@ -143,7 +145,7 @@ function showPopups(data) {
 	Object.keys(data).forEach(function(key) {
 		var item = data[key];
 
-		if(ops.sentiment[item.sentiment]) {
+		if(Sentiment[item.sentiment]) {
 			var ele = document.createElement("div");
 		
 			// Debug only
